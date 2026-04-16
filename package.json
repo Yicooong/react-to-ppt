@@ -1,0 +1,39 @@
+{
+  "name": "react-to-ppt",
+  "version": "1.0.0",
+  "description": "将 React 组件代码转换为专业的 PPT 演示文稿",
+  "main": "src/generator/index.js",
+  "bin": {
+    "react-to-ppt": "cli.js"
+  },
+  "scripts": {
+    "test": "node cli.js examples/Button.jsx --output ./test.pptx",
+    "batch-test": "node cli.js batch ./examples --output ./test-presentations"
+  },
+  "keywords": [
+    "react",
+    "ppt",
+    "powerpoint",
+    "presentation",
+    "code-to-slides",
+    "babel",
+    "parser"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/parser": "^7.23.0",
+    "@babel/traverse": "^7.23.0",
+    "commander": "^11.0.0",
+    "highlight.js": "^11.9.0",
+    "pptxgenjs": "^3.12.0"
+  },
+  "devDependencies": {
+    "react": "^18.2.0",
+    "react-icons": "^4.12.0",
+    "sharp": "^0.33.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

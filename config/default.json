@@ -1,0 +1,30 @@
+{
+  "theme": "modern",
+  "layout": "LAYOUT_16x9",
+  "author": "React to PPT",
+  "title": "React Component Presentation",
+  "colors": {
+    "primary": "1E2761",
+    "secondary": "CADCFC",
+    "accent": "FFFFFF",
+    "text": "363636",
+    "background": "FFFFFF"
+  },
+  "fonts": {
+    "title": "Arial Black",
+    "body": "Calibri"
+  },
+  "pages": [
+    "cover",
+    "code",
+    "structure",
+    "props",
+    "hooks",
+    "summary"
+  ],
+  "highlight": {
+    "theme": "atom-one-dark",
+    "lineNumbers": false,
+    "fontSize": 10
+  }
+}
