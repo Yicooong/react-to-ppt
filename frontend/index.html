@@ -6,18 +6,15 @@
   <title>React to PPT - AI 驱动的组件演示文稿生成器</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- 动态背景 -->
   <div class="bg-gradient"></div>
   <div class="bg-grid"></div>
 
   <div class="app">
-    <!-- 顶部导航栏 -->
     <header class="header">
       <div class="header-content">
         <div class="logo">
@@ -51,92 +48,145 @@
     </header>
 
     <main class="main">
-      <!-- Hero 区域 -->
       <div class="hero">
         <div class="hero-badge">✨ AI 驱动的演示文稿生成</div>
         <h2 class="hero-title">用自然语言描述<br/>自动生成 PPT 演示文稿</h2>
         <p class="hero-desc">
-          只需描述你想要的 React 组件，AI 将为你生成代码并自动转换为专业的 PPT 演示文档
+          三种模式：AI 自然语言生成 / 代码直接转换 / 仅预览代码
         </p>
       </div>
 
-      <!-- 主工作区 -->
       <div class="workspace">
         <!-- 左侧：输入面板 -->
         <section class="input-card glass-card">
-          <div class="card-header">
-            <div class="card-icon">✏️</div>
-            <h3>组件描述</h3>
-            <span class="char-count" id="charCount">0 字</span>
+          <!-- 模式选择标签 -->
+          <div class="tabs">
+            <button class="tab active" data-mode="ai">
+              <span class="tab-icon">🤖</span>
+              <span class="tab-label">AI 生成</span>
+            </button>
+            <button class="tab" data-mode="code">
+              <span class="tab-icon">📝</span>
+              <span class="tab-label">代码转换</span>
+            </button>
+            <button class="tab" data-mode="preview">
+              <span class="tab-icon">👁️</span>
+              <span class="tab-label">仅预览</span>
+            </button>
           </div>
 
-          <div class="input-wrapper">
-            <textarea
-              id="promptInput"
-              placeholder="例如：创建一个现代化的登录表单，包含用户名、密码输入框，支持回车提交、错误提示、记住密码功能..."
-              rows="6"
-            ></textarea>
-            <div class="input-glow"></div>
-          </div>
-
-          <div class="quick-prompts">
-            <span class="quick-label">快速示例：</span>
-            <button class="quick-chip" data-prompt="创建一个蓝色的提交按钮，支持 loading 状态、禁用样式，点击后显示 loading 动画">按钮</button>
-            <button class="quick-chip" data-prompt="创建一个用户信息卡片组件，显示头像、姓名、邮箱、关注按钮，支持悬停效果">卡片</button>
-            <button class="quick-chip" data-prompt="创建一个导航栏，包含 logo、菜单项、搜索框、用户头像，支持移动端汉堡菜单">导航栏</button>
-            <button class="quick-chip" data-prompt="创建一个模态对话框，包含标题、内容、确认和取消按钮，支持点击遮罩关闭">模态框</button>
-          </div>
-
-          <div class="form-row">
-            <div class="form-field">
-              <label for="providerSelect">LLM 提供商</label>
-              <div class="select-wrapper">
-                <select id="providerSelect">
-                  <option value="stepfun">StepFun (推荐)</option>
-                  <option value="openai">OpenAI (GPT-4)</option>
-                  <option value="local">本地模型 (Ollama)</option>
-                </select>
-                <div class="select-arrow">▼</div>
-              </div>
+          <!-- AI 生成模式 -->
+          <div id="aiModePanel" class="mode-panel active">
+            <div class="panel-header">
+              <h3>组件描述</h3>
+              <span class="char-count" id="charCount">0 字</span>
             </div>
 
-            <div class="form-field">
-              <label for="themeSelect">PPT 主题</label>
-              <div class="select-wrapper">
-                <select id="themeSelect">
-                  <option value="modern">Modern (简约)</option>
-                  <option value="midnight">Midnight (商务)</option>
-                  <option value="coral">Coral (活力)</option>
-                  <option value="forest">Forest (清新)</option>
-                </select>
-                <div class="select-arrow">▼</div>
-              </div>
+            <div class="form-group">
+              <label>描述你想要的组件</label>
+              <textarea id="promptInput" placeholder="例如：创建一个现代化的登录表单，包含用户名、密码输入框，支持回车提交、错误提示、记住密码功能..." rows="5"></textarea>
+              <small class="form-hint">提示：描述越详细，生成的代码越符合预期</small>
+            </div>
+
+            <div class="quick-prompts">
+              <span class="quick-label">快速示例：</span>
+              <button class="quick-chip" data-prompt="创建一个蓝色的提交按钮，支持 loading 状态、禁用样式，点击后显示 loading 动画">按钮</button>
+              <button class="quick-chip" data-prompt="创建一个用户信息卡片组件，显示头像、姓名、邮箱、关注按钮，支持悬停效果">卡片</button>
+              <button class="quick-chip" data-prompt="创建一个导航栏，包含 logo、菜单项、搜索框、用户头像，支持移动端汉堡菜单">导航栏</button>
+              <button class="quick-chip" data-prompt="创建一个模态对话框，包含标题、内容、确认和取消按钮，支持点击遮罩关闭">模态框</button>
             </div>
           </div>
 
-          <div class="button-group">
-            <button id="generateBtn" class="btn btn-primary">
+          <!-- 代码转换模式 -->
+          <div id="codeModePanel" class="mode-panel hidden">
+            <div class="panel-header">
+              <h3>React 代码</h3>
+            </div>
+            <div class="form-group">
+              <label>粘贴你的 React 组件代码</label>
+              <textarea id="codeInput" placeholder="const Button = ({ children, onClick }) => {
+  return <button onClick={onClick}>{children}</button>;
+};
+
+export default Button;" rows="8"></textarea>
+              <small class="form-hint">直接粘贴jsx代码，即可生成PPT</small>
+            </div>
+          </div>
+
+          <!-- 仅预览模式 -->
+          <div id="previewModePanel" class="mode-panel hidden">
+            <div class="panel-header">
+              <h3>预览设置</h3>
+            </div>
+            <div class="form-group">
+              <label>选择模式</label>
+              <div class="preview-options">
+                <p>点击"仅预览代码"按钮，只生成 React 代码，不创建 PPT。</p>
+                <p class="form-hint">适用于测试 AI 生成效果或快速查看代码</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 通用设置区 -->
+          <div class="settings-panel">
+            <div class="settings-row">
+              <div class="form-field">
+                <label for="providerSelect">LLM 提供商</label>
+                <div class="select-wrapper">
+                  <select id="providerSelect">
+                    <option value="stepfun">StepFun (推荐)</option>
+                    <option value="openai">OpenAI (GPT-4)</option>
+                    <option value="local">本地模型 (Ollama)</option>
+                  </select>
+                  <div class="select-arrow">▼</div>
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label for="themeSelect">PPT 主题</label>
+                <div class="select-wrapper">
+                  <select id="themeSelect">
+                    <option value="modern">Modern (简约)</option>
+                    <option value="midnight">Midnight (商务)</option>
+                    <option value="coral">Coral (活力)</option>
+                    <option value="forest">Forest (清新)</option>
+                  </select>
+                  <div class="select-arrow">▼</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="button-row">
+            <button id="generateBtn" class="btn btn-primary btn-large">
               <span class="btn-icon">🚀</span>
               <span class="btn-text">生成 PPT 演示文稿</span>
             </button>
-            <button id="previewBtn" class="btn btn-ghost">
+            <!-- 代码转换模式使用此按钮 -->
+            <button id="convertBtn" class="btn btn-primary btn-large hidden" style="display:none;">
+              <span class="btn-icon">⚡</span>
+              <span class="btn-text">转换为 PPT</span>
+            </button>
+            <!-- 预览模式使用此按钮 -->
+            <button id="previewCodeBtn" class="btn btn-ghost hidden" style="display:none;">
               <span class="btn-icon">👁️</span>
               <span class="btn-text">仅预览代码</span>
             </button>
           </div>
 
-          <!-- 进度条 -->
+          <!-- 进度 -->
           <div id="progressPanel" class="progress-section hidden">
             <div class="progress-track">
               <div id="progressFill" class="progress-bar-fill"></div>
             </div>
             <div class="progress-status">
               <span id="progressIcon" class="progress-icon">⏳</span>
-              <span id="progressText" class="progress-label">正在连接 LLM...</span>
+              <span id="progressText" class="progress-label">准备中...</span>
             </div>
           </div>
 
-          <!-- 错误提示 -->
+          <!-- 错误框 -->
           <div id="errorPanel" class="error-card hidden">
             <div class="error-header">
               <span class="error-icon">⚠️</span>
@@ -147,9 +197,9 @@
           </div>
         </section>
 
-        <!-- 右侧：输出面板 -->
+        <!-- 右侧：结果输出 -->
         <section class="output-card glass-card">
-          <!-- 空状态 -->
+          <!-- 空态 -->
           <div id="placeholderPanel" class="placeholder-state">
             <div class="placeholder-visual">
               <div class="placeholder-icon-wrapper">
@@ -159,18 +209,18 @@
               </div>
             </div>
             <h3 class="placeholder-title">准备就绪</h3>
-            <p class="placeholder-desc">输入组件描述，点击"生成 PPT"开始创建演示文稿</p>
+            <p class="placeholder-desc">选择左侧模式，输入内容后开始生成</p>
           </div>
 
-          <!-- 加载状态 -->
+          <!-- 加载中 -->
           <div id="loadingPanel" class="loading-state hidden">
             <div class="spinner"></div>
             <p id="loadingText" class="loading-label">正在连接 LLM...</p>
           </div>
 
-          <!-- 结果面板 -->
+          <!-- 结果 -->
           <div id="resultPanel" class="result-state hidden">
-            <!-- 代码预览区 -->
+            <!-- 代码预览 -->
             <div class="code-card">
               <div class="code-header">
                 <div class="code-info">
@@ -198,9 +248,13 @@
               </div>
             </div>
 
-            <!-- 操作按钮 -->
+            <!-- 按钮（代码模式显示到PPT） -->
             <div class="action-card">
-              <a id="downloadBtn" class="btn btn-primary btn-large" download>
+              <button id="convertFromCodeBtn" class="btn btn-primary btn-large hidden" style="display:none;">
+                <span class="btn-icon">⚡</span>
+                <span>用此代码生成 PPT</span>
+              </button>
+              <a id="downloadBtn" class="btn btn-success btn-large" download>
                 <span class="btn-icon">⬇️</span>
                 <span>下载 PPT 演示文稿</span>
               </a>
@@ -210,7 +264,7 @@
               </button>
             </div>
 
-            <!-- 统计信息 -->
+            <!-- 统计 -->
             <div class="stats-card">
               <div class="stat-row">
                 <div class="stat-item">
@@ -236,7 +290,7 @@
                     <span id="statHooks" class="stat-value">0</span>
                   </div>
                 </div>
-                <div class="stat-item">
+                <div class="stat-item hidden" id="providerStatItem">
                   <span class="stat-icon">🤖</span>
                   <div class="stat-info">
                     <span class="stat-label">LLM 提供商</span>
@@ -250,7 +304,6 @@
       </div>
     </main>
 
-    <!-- 底部 -->
     <footer class="footer">
       <div class="footer-content">
         <p>
