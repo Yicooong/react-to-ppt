@@ -22,3 +22,8 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# LLM config (contains API keys - NEVER commit)
+server/config/llm.json
+.env
+.env.local

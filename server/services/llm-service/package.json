@@ -1,0 +1,8 @@
+{
+  "name": "@react-to-ppt/llm-service",
+  "version": "1.0.0",
+  "description": "LLM service layer for React to PPT - natural language to React code",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {}
+}

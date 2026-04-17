@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React to PPT - 自然语言生成演示文稿</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+</head>
+<body>
+  <div class="app">
+    <!-- 顶部导航 -->
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">📊</span>
+        <h1>React to PPT</h1>
+      </div>
+      <p class="subtitle">自然语言描述 → React 组件 → 演示文稿</p>
+    </header>
+
+    <main class="main">
+      <!-- 左侧输入区 -->
+      <section class="input-panel">
+        <div class="panel-header">
+          <h2>组件描述</h2>
+          <span class="word-count" id="wordCount">0 字</span>
+        </div>
+
+        <div class="form-group">
+          <label for="promptInput">描述你想要的组件</label>
+          <textarea
+            id="promptInput"
+            placeholder="例如：创建一个蓝色的提交按钮，支持 loading 状态、禁用样式，点击后显示 loading 动画..."
+            rows="5"
+          ></textarea>
+          <small>提示：描述越详细，生成的代码越符合预期</small>
+        </div>
+
+        <div class="form-group">
+          <label for="providerSelect">LLM 提供商</label>
+          <select id="providerSelect">
+            <option value="stepfun">StepFun (推荐)</option>
+            <option value="openai">OpenAI (GPT-4)</option>
+            <option value="local">本地模型</option>
+          </select>
+        </div>
+
+        <div class="button-group">
+          <button id="generateBtn" class="btn btn-primary btn-large">
+            <span class="btn-text">🚀 生成 PPT</span>
+          </button>
+          <button id="previewBtn" class="btn btn-secondary">
+            👁️ 预览代码
+          </button>
+        </div>
+
+        <!-- 进度指示器 -->
+        <div id="progressPanel" class="progress-panel hidden">
+          <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+          <p id="progressText" class="progress-text">准备中...</p>
+        </div>
+
+        <!-- 错误提示 -->
+        <div id="errorPanel" class="error-panel hidden">
+          <div class="error-header">
+            <span class="error-icon">⚠️</span>
+            <span>生成失败</span>
+          </div>
+          <p id="errorMsg"></p>
+          <button class="btn-close" onclick="hideError()">✕</button>
+        </div>
+      </section>
+
+      <!-- 右侧输出区 -->
+      <section class="output-panel">
+        <!-- 生成前 -->
+        <div id="placeholderPanel" class="placeholder-panel">
+          <div class="placeholder-content">
+            <span class="placeholder-icon">📝</span>
+            <h3>等待生成</h3>
+            <p>在左侧输入组件描述，点击"生成 PPT"按钮开始</p>
+          </div>
+        </div>
+
+        <!-- 生成中 -->
+        <div id="loadingPanel" class="loading-panel hidden">
+          <div class="spinner-large"></div>
+          <p id="loadingText">正在连接 LLM...</p>
+        </div>
+
+        <!-- 生成完成 -->
+        <div id="resultPanel" class="result-panel hidden">
+          <!-- 代码预览 -->
+          <div class="code-section">
+            <div class="section-header">
+              <h3>生成的代码</h3>
+              <div class="code-actions">
+                <button id="copyCodeBtn" class="btn-small">📋 复制</button>
+                <button id="toggleCodeBtn" class="btn-small">🔽 收起</button>
+              </div>
+            </div>
+            <pre id="codeBlock" class="code-block"><code></code></pre>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="actions-section">
+            <a id="downloadBtn" class="btn btn-success btn-large" download>
+              ⬇️ 下载 PPT 演示文稿
+            </a>
+            <button id="regenerateBtn" class="btn btn-outline">
+              🔄 重新生成
+            </button>
+          </div>
+
+          <!-- 统计信息 -->
+          <div class="stats-grid">
+            <div class="stat-item">
+              <span class="stat-label">代码行数</span>
+              <span id="statLines" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Props 数量</span>
+              <span id="statProps" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Hooks 使用</span>
+              <span id="statHooks" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">LLM 提供商</span>
+              <span id="statProvider" class="stat-value">-</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 底部 -->
+    <footer class="footer">
+      <p>
+        由 <a href="https://github.com/gitbrent/pptxgenjs" target="_blank">pptxgenjs</a>
+        和 LLM 驱动 | MIT 开源协议
+      </p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

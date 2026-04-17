@@ -2,7 +2,7 @@
  * PPT 生成主入口
  * 将 React 组件信息转换为 PPT 演示文稿
  */
-const { createPresentation } = require('./layout');
+const { createPresentation, loadConfig } = require('./layout');
 const slideGenerators = require('./slide-factory');
 const parser = require('../../src/parser');
 const fs = require('fs');
@@ -15,11 +15,11 @@ const path = require('path');
  * @returns {pptxgen} 生成的演示文稿对象
  */
 function generatePPT(componentInfo, options = {}) {
-  // 使用绝对路径加载配置
+  // 加载配置
   const configPath = path.resolve(__dirname, '../../react-to-ppt/config/default.json');
-  const config = slideGenerators.loadConfig(configPath);
+  const config = loadConfig(configPath);
   
-  const { pres } = slideGenerators.createPresentation(componentInfo, config);
+  const { pres } = createPresentation(componentInfo, config);
   
   // 检查应该创建哪些页面
   const pagesToCreate = options.pages || config.pages || ['cover', 'code', 'structure', 'props', 'hooks', 'summary'];
@@ -73,8 +73,8 @@ async function processReactFile(input, output, options = {}) {
   let componentInfo;
   let sourceCode;
   
-  // 判断输入是文件路径还是源码字符串
-  if (typeof input === 'string' && fsProm.existsSync(input)) {
+  // 判断输入是文件路径还是源码字符串（使用同步检查）
+  if (typeof input === 'string' && fs.existsSync(input)) {
     // 读取文件
     sourceCode = await fsProm.readFile(input, 'utf-8');
     componentInfo = parserModule.parseReactCode(sourceCode);
