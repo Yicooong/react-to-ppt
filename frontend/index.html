@@ -37,6 +37,13 @@
           </div>
         </div>
         <div class="header-actions">
+          <button id="settingsBtn" class="settings-btn" title="LLM 提供商设置">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 15s2-1.5 2-5-2-5-2-5-2 1.5-2 5 2 5 2 5 2-1.5 2-5z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <span>LLM 设置</span>
+          </button>
           <a href="https://github.com/Yicooong/react-to-ppt" target="_blank" class="github-link">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
@@ -317,6 +324,86 @@ export default Button;" rows="8"></textarea>
         </div>
       </div>
     </footer>
+  </div>
+
+  <!-- LLM 提供商设置模态框 -->
+  <div id="settingsModal" class="modal-overlay hidden">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v2m0 18v2m-8-8h2m12-8h2"/>
+          </svg>
+          <h2>LLM 提供商设置</h2>
+        </div>
+        <button class="modal-close" onclick="closeSettings()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="providers-list" id="providersList">
+          <!-- 提供商列表动态生成 -->
+        </div>
+
+        <div class="modal-divider">
+          <span>或添加新提供商</span>
+        </div>
+
+        <div class="provider-form">
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="providerName">提供商名称</label>
+              <input type="text" id="providerName" placeholder="例如：StepFun、OpenAI、Ollama" />
+            </div>
+
+            <div class="form-field">
+              <label for="providerType">提供商类型</label>
+              <select id="providerType">
+                <option value="openai">OpenAI 兼容</option>
+                <option value="stepfun">StepFun</option>
+                <option value="custom">自定义</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label for="apiKey">API Key</label>
+              <div class="input-with-button">
+                <input type="password" id="apiKey" placeholder="sk-..." />
+                <button type="button" class="btn-icon-only" onclick="toggleApiKeyVisibility()" title="显示/隐藏">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="baseUrl">Base URL</label>
+              <input type="text" id="baseUrl" placeholder="https://api.openai.com/v1" />
+            </div>
+
+            <div class="form-field">
+              <label for="modelName">模型名称</label>
+              <input type="text" id="modelName" placeholder="gpt-4、step-3.5-flash、codellama:7b" />
+            </div>
+
+            <div class="form-field">
+              <label for="temperature">Temperature (0-1)</label>
+              <input type="number" id="temperature" min="0" max="1" step="0.1" value="0.7" />
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn btn-secondary" onclick="testConnection()">
+              <span>🔌</span> 测试连接
+            </button>
+            <button class="btn btn-primary" onclick="saveProvider()">
+              <span>💾</span> 保存提供商
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <p>提示：配置会保存在本地，API Key 不会上传到我们的服务器</p>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>

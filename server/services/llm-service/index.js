@@ -3,15 +3,16 @@
 /**
  * 支持的 LLM 提供商列表
  */
-const PROVIDERS = ['stepfun', 'openai', 'local'];
+const PROVIDERS = ['stepfun', 'openai', 'local', 'zhipu'];
 
 /**
  * 默认模型映射
  */
 const DEFAULT_MODELS = {
   stepfun: 'step-3.5-flash',
-  openai: 'gpt-4',
-  local: 'codellama:7b'
+  openai:  'gpt-4',
+  local:   'codellama:7b',
+  zhipu:   'glm-4-flash'
 };
 
 /**
@@ -149,6 +150,16 @@ class LLMService {
       this.instances.local = new OpenAICompatibleProvider({
         name: 'local',
         ...config.local
+      });
+    }
+
+    // 智谱 AI (Zhipu)
+    if (config.zhipu?.apiKey) {
+      this.instances.zhipu = new OpenAICompatibleProvider({
+        name: 'zhipu',
+        baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+        model: 'glm-4-flash',
+        ...config.zhipu
       });
     }
   }

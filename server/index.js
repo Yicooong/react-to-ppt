@@ -203,17 +203,20 @@ app.post('/api/pipeline', async (req, res) => {
  * GET /api/providers
  * 获取可用的 LLM 提供商列表
  */
+const providerNames = {
+  stepfun: 'StepFun',
+  openai: 'OpenAI',
+  local: '本地模型',
+  zhipu: '智谱 AI'
+};
+
 app.get('/api/providers', (req, res) => {
   const providers = [];
   if (llmService && llmService.instances) {
     Object.keys(llmService.instances).forEach(key => {
       providers.push({
         id: key,
-        name: {
-          stepfun: 'StepFun',
-          openai: 'OpenAI',
-          local: '本地模型'
-        }[key] || key,
+        name: providerNames[key] || key,
         configured: llmService.instances[key].isConfigured()
       });
     });
