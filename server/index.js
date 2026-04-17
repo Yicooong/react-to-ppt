@@ -59,7 +59,8 @@ try {
   }
 
   llmService = new LLMService(llmConfig);
-  pptGenerator = require('./services/ppt-generator');
+  const { PPTGeneratorService } = require('./services/ppt-generator');
+  pptGenerator = new PPTGeneratorService();
   console.log('✅ 服务初始化完成');
 } catch (err) {
   console.error('❌ 服务初始化失败:', err.message);

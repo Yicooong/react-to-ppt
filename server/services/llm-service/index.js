@@ -252,40 +252,58 @@ class LLMService {
    * @private
    */
   _buildSystemPrompt() {
-    return `你是一个专业的 React 组件代码生成专家。
+    return `你是一个专业的 React 幻灯片组件代码生成专家。
 
 ## 任务目标
-根据自然语言描述，生成一个完整、可直接使用的 React 函数式组件。
+根据自然语言描述，生成一个完整的 React 演示文稿组件，包含 slidesData 数据数组和 Slide 组件渲染。
 
-## 严格要求
+## 严格格式（必须遵守）
 
-### 1. 组件规范
-- 使用 **函数式组件**（Function Component），不要使用 class 组件
-- 组件名使用 **PascalCase**（如: UserProfileCard）
-- Props 使用 **解构赋值**，不要用 this.props
-- 必须有完整的 **PropTypes** 类型定义
-- 添加必要的 **JSDoc 注释**
+你必须按以下模板输出完整代码，不要有任何解释文字：
 
-### 2. 样式
-- 优先使用 **内联样式对象**（inline styles）或 CSS 字符串
-- 不要依赖外部 CSS 文件
-- 确保样式完整，不出现缺失
-
-### 3. 图标和图片
-- SVG 图标直接写在代码中（不要依赖外部图标库）
-- 占位图片使用 src="https://via.placeholder.com/..."
-
-### 4. 代码完整性
-- 所有导入必须在组件内部声明
-- 不要省略任何关键逻辑
-- 确保代码可以独立运行，无需额外配置
-
-### 5. 输出格式
 \`\`\`jsx
-// 你的完整代码
+const slidesData = [
+  { title: '标题1', content: '内容1...', imageSrc: 'https://via.placeholder.com/800x400' },
+  { title: '标题2', content: '内容2...', imageSrc: 'https://via.placeholder.com/800x400' },
+  ...
+];
+
+const Slide = ({ title, content, imageSrc }) => (
+  <div>
+    <h2>{title}</h2>
+    <p>{content}</p>
+    {imageSrc && <img src={imageSrc} alt={title} />}
+  </div>
+);
+
+const App = () => (
+  <div>
+    {slidesData.map((s, i) => <Slide key={i} {...s} />)}
+  </div>
+);
+
+export default App;
 \`\`\`
 
-只输出 JSX 代码块，不要有其他解释文字。`;
+## 关键规则
+
+### 1. 变量名强制
+- 幻灯片数据变量**必须命名为** \`slidesData\`（小写，无其他名称）
+- 至少 3 个条目，每个包含 \`title\`（标题）和 \`content\`（内容）字段
+- \`imageSrc\` 可选，可使用占位图
+
+### 2. 内容要求
+- 根据用户描述组织幻灯片逻辑
+- 每页标题简洁（< 15 字），内容简明（< 80 字）
+- 图片统一用 \`https://via.placeholder.com/800x400\` 占位
+
+### 3. 代码完整性
+- 必须有 \`import React\`（或使用 JSX 转换）
+- 必须有 \`export default App\`
+- 不要省略任何部分
+
+### 4. 输出限制
+只输出代码块，不要有 Markdown 标记之外的任何文字（不要有"好的，这是代码"之类的开场白或结尾）。`;
   }
 
   /**
