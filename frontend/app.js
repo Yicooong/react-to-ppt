@@ -1,12 +1,12 @@
 /**
- * Frontend App - React to PPT
- * 三种模式：AI生成、代码转换、仅预览
+ * React to PPT - 前端应用
+ * 三种模式：AI生成 / 代码转换 / 仅预览
  */
 
 const API_BASE = window.location.origin;
 let currentCode = '';
 let currentPptBlob = null;
-let currentMode = 'ai'; // 'ai' | 'code' | 'preview'
+let currentMode = 'ai';
 
 document.addEventListener('DOMContentLoaded', () => {
   initTabs();
@@ -18,8 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============ 标签切换 ============
 
 function initTabs() {
-  const tabs = document.querySelectorAll('.tab');
-  tabs.forEach(tab => {
+  document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => switchMode(tab.dataset.mode));
   });
 }
@@ -27,32 +26,32 @@ function initTabs() {
 function switchMode(mode) {
   currentMode = mode;
 
-  // 更新标签状态
+  // 切换标签状态
   document.querySelectorAll('.tab').forEach(t => {
     t.classList.toggle('active', t.dataset.mode === mode);
   });
 
-  // 显示对应面板
+  // 切换面板
   ['aiModePanel', 'codeModePanel', 'previewModePanel'].forEach(id => {
-    document.getElementById(id).classList.add('hidden');
+    document.getElementById(id).classList.toggle('hidden', id !== `${mode}ModePanel`);
   });
-  document.getElementById(`${mode}ModePanel`).classList.remove('hidden');
 
-  // 按钮显示逻辑
+  updateActionButtons();
+  hideError();
+}
+
+function updateActionButtons() {
   const generateBtn = document.getElementById('generateBtn');
   const convertBtn = document.getElementById('convertBtn');
   const previewBtn = document.getElementById('previewCodeBtn');
 
-  generateBtn.classList.add('hidden');
-  convertBtn.classList.add('hidden');
-  previewBtn.classList.add('hidden');
+  [generateBtn, convertBtn, previewBtn].forEach(btn => btn.classList.add('hidden'));
 
-  if (mode === 'ai') {
+  if (currentMode === 'ai') {
     generateBtn.classList.remove('hidden');
-    generateBtn.querySelector('.btn-text').textContent = '🚀 生成 PPT 演示文稿';
-  } else if (mode === 'code') {
+  } else if (currentMode === 'code') {
     convertBtn.classList.remove('hidden');
-  } else if (mode === 'preview') {
+  } else if (currentMode === 'preview') {
     previewBtn.classList.remove('hidden');
   }
 }
@@ -60,16 +59,10 @@ function switchMode(mode) {
 // ============ 事件绑定 ============
 
 function initEventListeners() {
-  // 生成按钮（AI 模式）
-  document.getElementById('generateBtn').addEventListener('click', () => handleAIGenerate());
+  document.getElementById('generateBtn').addEventListener('click', handleAIGenerate);
+  document.getElementById('convertBtn').addEventListener('click', handleCodeConvert);
+  document.getElementById('previewCodeBtn').addEventListener('click', handlePreview);
 
-  // 转换按钮（代码模式）
-  document.getElementById('convertBtn').addEventListener('click', () => handleCodeConvert());
-
-  // 预览按钮（预览模式）
-  document.getElementById('previewCodeBtn').addEventListener('click', () => handlePreview());
-
-  // 复制、收起、重新生成、下载
   document.getElementById('copyCodeBtn').addEventListener('click', () => copyToClipboard(currentCode));
   document.getElementById('toggleCodeBtn').addEventListener('click', toggleCode);
   document.getElementById('regenerateBtn').addEventListener('click', () => {
@@ -77,16 +70,13 @@ function initEventListeners() {
     else if (currentMode === 'code') handleCodeConvert();
     else handlePreview();
   });
-  document.getElementById('downloadBtn').addEventListener('click', (e) => {
+  document.getElementById('downloadBtn').addEventListener('click', e => {
     e.preventDefault();
     if (currentPptBlob) downloadBlob(currentPptBlob, 'react-to-ppt.pptx');
   });
 
-  // 字数统计
   document.getElementById('promptInput').addEventListener('input', updateCharCount);
 }
-
-// ============ 快速示例 ============
 
 function initQuickPrompts() {
   document.querySelectorAll('.quick-chip').forEach(chip => {
@@ -98,9 +88,9 @@ function initQuickPrompts() {
   });
 }
 
-// ============ 模式处理函数 ============
+// ============ 三种模式处理 ============
 
-// 模式 1: AI 生成 → 代码 → PPT
+// 模式1: AI 生成 → PPT（一步到位，用 pipeline）
 async function handleAIGenerate() {
   const prompt = document.getElementById('promptInput').value.trim();
   const provider = document.getElementById('providerSelect').value;
@@ -108,55 +98,48 @@ async function handleAIGenerate() {
 
   if (!prompt) return showError('请输入组件描述');
   hideError();
-  showLoading('正在连接 LLM...');
+  showLoading('正在 AI 生成...');
 
   try {
-    const codeResult = await callAPI('/api/generate', { prompt, provider });
-    currentCode = codeResult.code;
-    showLoading('正在生成 PPT 演示文稿...');
-
-    const pptResponse = await fetch(`${API_BASE}/api/convert`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: currentCode, filename: sanitizeFilename(prompt), options: { theme } })
+    const blob = await callAPI('/api/pipeline', {
+      prompt,
+      provider,
+      options: { theme, filename: sanitize(prompt) }
     });
-
-    if (!pptResponse.ok) throw new Error((await pptResponse.json()).error || 'PPT 生成失败');
-    currentPptBlob = await pptResponse.blob();
-
-    showResult(currentCode, currentPptBlob, provider);
+    // 同时获取代码（再次调用 generate 获取生成的代码）
+    const { code } = await callAPI('/api/generate', { prompt, provider });
+    currentCode = code;
+    currentPptBlob = blob;
+    showResult(currentCode, blob, provider);
   } catch (err) {
-    showError(err.message || '生成失败，请重试');
+    showError(err.message || '生成失败');
   }
 }
 
-// 模式 2: 代码转换 → PPT
+// 模式2: 代码 → PPT（直接转换）
 async function handleCodeConvert() {
   const code = document.getElementById('codeInput').value.trim();
   const theme = document.getElementById('themeSelect').value;
 
   if (!code) return showError('请输入 React 代码');
   hideError();
-  showLoading('正在生成 PPT 演示文稿...');
+  showLoading('正在转换...');
 
   try {
-    const response = await fetch(`${API_BASE}/api/convert`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, filename: sanitizeFilename(code), options: { theme } })
+    const blob = await callAPI('/api/convert', {
+      code,
+      filename: sanitize(code),
+      options: { theme }
     });
-
-    if (!response.ok) throw new Error((await response.json()).error || '转换失败');
-    currentPptBlob = await response.blob();
     currentCode = code;
-
-    showResult(code, currentPptBlob, null);
+    currentPptBlob = blob;
+    showResult(code, blob, null);
   } catch (err) {
-    showError(err.message || '转换失败，请重试');
+    showError(err.message || '转换失败');
   }
 }
 
-// 模式 3: 仅预览代码
+// 模式3: 仅预览代码
 async function handlePreview() {
   const prompt = document.getElementById('promptInput').value.trim();
   const provider = document.getElementById('providerSelect').value;
@@ -166,9 +149,10 @@ async function handlePreview() {
   showLoading('正在生成代码...');
 
   try {
-    const result = await callAPI('/api/generate', { prompt, provider });
-    currentCode = result.code;
-    showResult(currentCode, null, provider);
+    const { code } = await callAPI('/api/generate', { prompt, provider });
+    currentCode = code;
+    currentPptBlob = null;
+    showResult(code, null, provider);
   } catch (err) {
     showError(err.message || '生成失败');
   }
@@ -177,25 +161,24 @@ async function handlePreview() {
 // ============ API 调用 ============
 
 async function callAPI(endpoint, body) {
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+  const response = await fetch(`${API_BASE}${endpoint}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `HTTP ${res.status}`);
-  }
-  return await res.json();
+
+  if (!response.ok) throw new Error((await response.json()).error || `HTTP ${response.status}`);
+
+  return await response.json();
 }
 
 // ============ UI 状态 ============
 
-function showLoading(msg) {
+function showLoading(message = '加载中...') {
   document.getElementById('placeholderPanel').classList.add('hidden');
   document.getElementById('resultPanel').classList.add('hidden');
   document.getElementById('loadingPanel').classList.remove('hidden');
-  document.getElementById('loadingText').textContent = msg;
+  document.getElementById('loadingText').textContent = message;
 }
 
 function showResult(code, blob, provider) {
@@ -208,28 +191,22 @@ function showResult(code, blob, provider) {
 
   updateStats(code, provider);
 
+  const btn = document.getElementById('downloadBtn');
   if (blob) {
     const url = URL.createObjectURL(blob);
-    const btn = document.getElementById('downloadBtn');
     btn.href = url;
-    btn.download = `react-to-ppt-${Date.now()}.pptx`;
+    btn.download = `presentation-${Date.now()}.pptx`;
+    btn.style.display = 'inline-flex';
   } else {
-    document.getElementById('downloadBtn').style.display = 'none';
-  }
-
-  // 代码模式生成的PPT，显示额外转换按钮
-  const convertBtn = document.getElementById('convertFromCodeBtn');
-  if (currentMode === 'code' && blob) {
-    convertBtn.classList.add('hidden');
-  } else if (currentMode === 'code' && !blob) {
-    convertBtn.classList.remove('hidden');
+    btn.href = '#';
+    btn.style.display = 'none';
   }
 }
 
-function showError(msg) {
-  const el = document.getElementById('errorPanel');
-  document.getElementById('errorMsg').textContent = msg;
-  el.classList.remove('hidden');
+function showError(message) {
+  const panel = document.getElementById('errorPanel');
+  document.getElementById('errorMsg').textContent = message;
+  panel.classList.remove('hidden');
   setTimeout(hideError, 5000);
 }
 
@@ -238,36 +215,34 @@ function hideError() {
 }
 
 function updateCharCount() {
-  const len = document.getElementById('promptInput').value.length;
-  document.getElementById('charCount').textContent = `${len} 字`;
+  document.getElementById('charCount').textContent =
+    `${document.getElementById('promptInput').value.length} 字`;
 }
 
 function toggleCode() {
   const block = document.getElementById('codeBlock');
   const btn = document.getElementById('toggleCodeBtn');
   block.style.maxHeight = block.style.maxHeight ? '' : '300px';
-  btn.textContent = block.style.maxHeight ? '🔼 展开' : '🔽 收起';
+  btn.textContent = block.style.maxHeight ? '🔽 收起' : '🔼 展开';
 }
 
-// ============ 统计 ============
+// ============ 统计信息 ============
 
 function updateStats(code, provider) {
-  const lines = code.split('\n').length;
-  const props = (code.match(/props:\s*{/g) || []).length;
-  const hooks = (code.match(/(useState|useEffect|useContext|useReducer|useCallback|useMemo|useRef)/g) || []).length;
+  document.getElementById('statLines').textContent = code.split('\n').length;
+  document.getElementById('statProps').textContent = (code.match(/props:\s*{/g) || []).length;
+  document.getElementById('statHooks').textContent = (code.match(/(useState|useEffect|useContext|useCallback|useMemo|useRef)/g) || []).length;
 
-  document.getElementById('statLines').textContent = lines;
-  document.getElementById('statProps').textContent = props;
-  document.getElementById('statHooks').textContent = hooks;
   if (provider) {
-    document.getElementById('statProvider').textContent = { stepfun: 'StepFun', openai: 'OpenAI', local: '本地模型' }[provider] || provider;
+    const names = { stepfun: 'StepFun', openai: 'OpenAI', local: '本地模型' };
+    document.getElementById('statProvider').textContent = names[provider] || provider;
     document.getElementById('providerStatItem').classList.remove('hidden');
   } else {
     document.getElementById('providerStatItem').classList.add('hidden');
   }
 }
 
-// ============ 工具 ============
+// ============ 工具函数 ============
 
 function copyToClipboard(text) {
   navigator.clipboard.writeText(text).then(() => {
@@ -287,9 +262,17 @@ function downloadBlob(blob, filename) {
   URL.revokeObjectURL(url);
 }
 
-function sanitizeFilename(text) {
+function sanitize(text) {
   return text.slice(0, 30).replace(/[^a-zA-Z0-9-_]/g, '_') || 'presentation';
 }
+
+function checkProviders() {
+  fetch(`${API_BASE}/api/providers`).then(res => {
+    if (res.ok) console.log('提供商:', res.json().then(data => data.providers));
+  }).catch(() => {});
+}
+
+// ============ 语法高亮 ============
 
 function highlightSyntax(code) {
   let html = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -297,11 +280,14 @@ function highlightSyntax(code) {
   html = html.replace(/(\/\*[\s\S]*?\*\/|\/\/.*)/g, '<span class="hljs-comment">$1</span>');
   html = html.replace(/(['"`])(.*?)\1/g, '<span class="hljs-string">$1$2$1</span>');
 
-  const keywords = ['import', 'export', 'default', 'from', 'const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'switch', 'case', 'break', 'continue', 'class', 'extends', 'new', 'this', 'super', 'try', 'catch', 'throw', 'async', 'await'];
-  keywords.forEach(k => html = html.replace(new RegExp(`\\b(${k})\\b`, 'g'), '<span class="hljs-keyword">$1</span>'));
+  ['import', 'export', 'default', 'from', 'const', 'let', 'var', 'function',
+   'return', 'if', 'else', 'for', 'while', 'switch', 'case', 'break', 'continue',
+   'class', 'extends', 'new', 'this', 'super', 'try', 'catch', 'throw', 'async', 'await']
+  .forEach(k => html = html.replace(new RegExp(`\\b(${k})\\b`, 'g'), '<span class="hljs-keyword">$1</span>'));
 
-  const reactKeywords = ['React', 'useState', 'useEffect', 'useContext', 'useReducer', 'useCallback', 'useMemo', 'useRef', 'useImperativeHandle', 'useLayoutEffect', 'Component', 'PureComponent', 'Fragment', 'StrictMode', 'memo'];
-  reactKeywords.forEach(k => html = html.replace(new RegExp(`\\b(${k})\\b`, 'g'), '<span class="hljs-function">$1</span>'));
+  ['React', 'useState', 'useEffect', 'useContext', 'useReducer', 'useCallback',
+   'useMemo', 'useRef', 'Component', 'Fragment']
+  .forEach(k => html = html.replace(new RegExp(`\\b(${k})\\b`, 'g'), '<span class="hljs-function">$1</span>'));
 
   html = html.replace(/\b(\d+)\b/g, '<span class="hljs-number">$1</span>');
   html = html.replace(/(\w+)(?=\()/g, '<span class="hljs-function">$1</span>');
@@ -309,11 +295,4 @@ function highlightSyntax(code) {
   html = html.replace(/(\w+)=/g, '<span class="hljs-attr">$1</span>=');
 
   return `<code>${html}</code>`;
-}
-
-async function checkProviders() {
-  try {
-    const res = await fetch(`${API_BASE}/api/providers`);
-    if (res.ok) console.log('提供商:', (await res.json()).providers);
-  } catch (e) {}
 }
