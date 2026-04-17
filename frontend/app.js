@@ -3,7 +3,7 @@
  * 负责与后端 API 交互，处理用户界面逻辑
  */
 
-const API_BASE = window.location.origin; // 当前域名
+const API_BASE = window.location.origin;
 let currentCode = '';
 let currentPptBlob = null;
 
@@ -11,6 +11,7 @@ let currentPptBlob = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   initEventListeners();
+  initQuickPrompts();
   checkProviders();
 });
 
@@ -22,31 +23,21 @@ function initEventListeners() {
   const toggleCodeBtn = document.getElementById('toggleCodeBtn');
   const regenerateBtn = document.getElementById('regenerateBtn');
   const downloadBtn = document.getElementById('downloadBtn');
-  const providerSelect = document.getElementById('providerSelect');
 
   // 生成按钮
-  generateBtn.addEventListener('click', handleGenerate);
+  generateBtn.addEventListener('click', () => handleGenerate(false));
 
-  // 预览按钮（仅生成代码，不生成 PPT）
+  // 预览按钮（仅生成代码）
   previewBtn.addEventListener('click', () => handleGenerate(true));
 
   // 复制代码
   copyCodeBtn.addEventListener('click', () => copyToClipboard(currentCode));
 
   // 收起/展开代码
-  toggleCodeBtn.addEventListener('click', () => {
-    const codeBlock = document.getElementById('codeBlock');
-    if (codeBlock.style.maxHeight) {
-      codeBlock.style.maxHeight = '';
-      toggleCodeBtn.textContent = '🔽 收起';
-    } else {
-      codeBlock.style.maxHeight = '300px';
-      toggleCodeBtn.textContent = '🔼 展开';
-    }
-  });
+  toggleCodeBtn.addEventListener('click', toggleCode);
 
   // 重新生成
-  regenerateBtn.addEventListener('click', () => handleGenerate());
+  regenerateBtn.addEventListener('click', () => handleGenerate(false));
 
   // 下载 PPT
   downloadBtn.addEventListener('click', (e) => {
@@ -57,10 +48,26 @@ function initEventListeners() {
   });
 
   // 字数统计
-  promptInput.addEventListener('input', updateWordCount);
+  promptInput.addEventListener('input', updateCharCount);
+}
 
-  // Provider 变化
-  providerSelect.addEventListener('change', checkProviders);
+// ============ 快速示例 ============
+
+function initQuickPrompts() {
+  const chips = document.querySelectorAll('.quick-chip');
+  const promptInput = document.getElementById('promptInput');
+
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      const prompt = chip.getAttribute('data-prompt');
+      promptInput.value = prompt;
+      updateCharCount();
+
+      // 动画反馈
+      chip.style.transform = 'scale(0.95)';
+      setTimeout(() => chip.style.transform = '', 150);
+    });
+  });
 }
 
 // ============ 事件处理 ============
@@ -68,6 +75,7 @@ function initEventListeners() {
 async function handleGenerate(previewOnly = false) {
   const prompt = document.getElementById('promptInput').value.trim();
   const provider = document.getElementById('providerSelect').value;
+  const theme = document.getElementById('themeSelect')?.value || 'modern';
 
   if (!prompt) {
     showError('请输入组件描述');
@@ -83,30 +91,29 @@ async function handleGenerate(previewOnly = false) {
       const result = await callAPI('/api/generate', { prompt, provider });
       showResult(result.code, null, result.provider);
     } else {
-      // 完整 pipeline：生成代码 + PPT
+      // 完整 pipeline
       showLoading('正在生成 React 代码...');
       const codeResult = await callAPI('/api/generate', { prompt, provider });
 
       showLoading('正在生成 PPT 演示文稿...');
-      const pptResult = await fetch(`${API_BASE}/api/convert`, {
+      const pptResponse = await fetch(`${API_BASE}/api/convert`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           code: codeResult.code,
-          filename: prompt.slice(0, 30).replace(/[^a-zA-Z0-9-_]/g, '_') || 'presentation',
-          options: {}
+          filename: sanitizeFilename(prompt),
+          options: { theme }
         })
       });
 
-      if (!pptResult.ok) {
-        const err = await pptResult.json();
+      if (!pptResponse.ok) {
+        const err = await pptResponse.json();
         throw new Error(err.error || 'PPT 生成失败');
       }
 
-      currentPptBlob = await pptResult.blob();
+      currentPptBlob = await pptResponse.blob();
       currentCode = codeResult.code;
 
-      // 显示结果
       showResult(currentCode, currentPptBlob, codeResult.provider);
     }
 
@@ -146,38 +153,56 @@ function showResult(code, blob, provider) {
   document.getElementById('loadingPanel').classList.add('hidden');
   document.getElementById('resultPanel').classList.remove('hidden');
 
-  // 代码高亮（基础）
+  // 代码高亮显示
   const codeBlock = document.getElementById('codeBlock');
   codeBlock.innerHTML = highlightSyntax(code);
-  codeBlock.style.maxHeight = 'none'; // 重置折叠状态
+  codeBlock.style.maxHeight = 'none';
+  currentCode = code;
 
-  // 统计信息
+  // 更新统计
   updateStats(code, provider);
 
-  // 下载链接
+  // 设置下载按钮
   if (blob) {
     const url = URL.createObjectURL(blob);
     const downloadBtn = document.getElementById('downloadBtn');
     downloadBtn.href = url;
-    downloadBtn.download = `presentation-${Date.now()}.pptx`;
+    downloadBtn.download = `react-to-ppt-${Date.now()}.pptx`;
   }
 }
 
 function showError(message) {
+  const errorPanel = document.getElementById('errorPanel');
   document.getElementById('errorMsg').textContent = message;
-  document.getElementById('errorPanel').classList.remove('hidden');
+  errorPanel.classList.remove('hidden');
+
+  // 自动 5 秒后消失
+  setTimeout(hideError, 5000);
 }
 
 function hideError() {
   document.getElementById('errorPanel').classList.add('hidden');
 }
 
-function updateWordCount() {
+function updateCharCount() {
   const text = document.getElementById('promptInput').value;
-  document.getElementById('wordCount').textContent = `${text.length} 字`;
+  document.getElementById('charCount').textContent = `${text.length} 字`;
 }
 
-// ============ 工具函数 ============
+function toggleCode() {
+  const codeBlock = document.getElementById('codeBlock');
+  const btn = document.getElementById('toggleCodeBtn');
+
+  if (codeBlock.style.maxHeight) {
+    codeBlock.style.maxHeight = '';
+    btn.textContent = '🔽 收起';
+  } else {
+    codeBlock.style.maxHeight = '300px';
+    btn.textContent = '🔼 展开';
+  }
+}
+
+// ============ 统计信息 ============
 
 function updateStats(code, provider) {
   const lines = code.split('\n').length;
@@ -199,12 +224,14 @@ function getProviderName(id) {
   return names[id] || id;
 }
 
+// ============ 工具函数 ============
+
 function copyToClipboard(text) {
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.getElementById('copyCodeBtn');
-    const original = btn.textContent;
-    btn.textContent = '✅ 已复制';
-    setTimeout(() => btn.textContent = original, 2000);
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '✅ 已复制';
+    setTimeout(() => btn.innerHTML = originalHTML, 2000);
   }).catch(() => {
     showError('复制失败，请手动复制');
   });
@@ -221,48 +248,56 @@ function downloadBlob(blob, filename) {
   URL.revokeObjectURL(url);
 }
 
-// ============ 语法高亮（基础版） ============
+function sanitizeFilename(text) {
+  return text.slice(0, 30).replace(/[^a-zA-Z0-9-_]/g, '_') || 'presentation';
+}
+
+// ============ 语法高亮（增强版） ============
 
 function highlightSyntax(code) {
-  // 简单的高亮规则（实际项目推荐 highlight.js）
-  const keywords = [
-    'import', 'export', 'default', 'from', 'const', 'let', 'var',
-    'function', 'return', 'if', 'else', 'for', 'while', 'switch', 'case',
-    'break', 'continue', 'class', 'extends', 'new', 'this', 'true', 'false',
-    'null', 'undefined', 'try', 'catch', 'throw', 'async', 'await'
-  ];
-
-  const reactKeywords = [
-    'React', 'useState', 'useEffect', 'useContext', 'useReducer',
-    'useCallback', 'useMemo', 'useRef', 'useImperativeHandle', 'useLayoutEffect',
-    'Component', 'PureComponent', 'Fragment', 'StrictMode'
-  ];
-
+  // 转义 HTML
   let html = code
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-  // 注释
+  // 规则顺序很重要
+
+  // 1. 注释（多行和单行）
   html = html.replace(/(\/\*[\s\S]*?\*\/|\/\/.*)/g, '<span class="hljs-comment">$1</span>');
 
-  // 字符串
+  // 2. 字符串（单引号、双引号、模板字符串）
   html = html.replace(/(['"`])(.*?)\1/g, '<span class="hljs-string">$1$2$1</span>');
 
-  // 关键字
+  // 3. 关键字
+  const keywords = [
+    'import', 'export', 'default', 'from', 'const', 'let', 'var', 'function',
+    'return', 'if', 'else', 'for', 'while', 'switch', 'case', 'break', 'continue',
+    'class', 'extends', 'new', 'this', 'super', 'try', 'catch', 'throw', 'async', 'await'
+  ];
   keywords.forEach(kw => {
-    const regex = new RegExp(`\\b(${kw})\\b`, 'g');
-    html = html.replace(regex, '<span class="hljs-keyword">$1</span>');
+    html = html.replace(new RegExp(`\\b(${kw})\\b`, 'g'), '<span class="hljs-keyword">$1</span>');
   });
 
-  // React 关键字
+  // 4. React 关键字（函数）
+  const reactKeywords = [
+    'React', 'useState', 'useEffect', 'useContext', 'useReducer', 'useCallback',
+    'useMemo', 'useRef', 'useImperativeHandle', 'useLayoutEffect',
+    'Component', 'PureComponent', 'Fragment', 'StrictMode', 'memo'
+  ];
   reactKeywords.forEach(kw => {
-    const regex = new RegExp(`\\b(${kw})\\b`, 'g');
-    html = html.replace(regex, '<span class="hljs-function">$1</span>');
+    html = html.replace(new RegExp(`\\b(${kw})\\b`, 'g'), '<span class="hljs-function">$1</span>');
   });
 
-  // 函数调用
+  // 5. 数字
+  html = html.replace(/\b(\d+)\b/g, '<span class="hljs-number">$1</span>');
+
+  // 6. 函数调用
   html = html.replace(/(\w+)(?=\()/g, '<span class="hljs-function">$1</span>');
+
+  // 7. JSX 标签
+  html = html.replace(/(&lt;\/?)([\w.]+)/g, '$1<span class="hljs-tag">$2</span>');
+  html = html.replace(/(\w+)=/g, '<span class="hljs-attr">$1</span>=');
 
   return `<code>${html}</code>`;
 }
@@ -274,8 +309,6 @@ async function checkProviders() {
     const res = await fetch(`${API_BASE}/api/providers`);
     if (res.ok) {
       const data = await res.json();
-      const select = document.getElementById('providerSelect');
-      // 可以根据可用性动态调整选项（可选）
       console.log('可用提供商:', data.providers);
     }
   } catch (err) {

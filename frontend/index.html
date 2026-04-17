@@ -3,146 +3,266 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>React to PPT - 自然语言生成演示文稿</title>
+  <title>React to PPT - AI 驱动的组件演示文稿生成器</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
+  <!-- 动态背景 -->
+  <div class="bg-gradient"></div>
+  <div class="bg-grid"></div>
+
   <div class="app">
-    <!-- 顶部导航 -->
+    <!-- 顶部导航栏 -->
     <header class="header">
-      <div class="logo">
-        <span class="logo-icon">📊</span>
-        <h1>React to PPT</h1>
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <rect width="32" height="32" rx="8" fill="url(#logoGrad)"/>
+              <path d="M8 12L16 8L24 12V20L16 24L8 20V12Z" stroke="white" stroke-width="2" fill="none"/>
+              <circle cx="16" cy="16" r="3" fill="white"/>
+              <defs>
+                <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
+                  <stop stop-color="#6366f1"/>
+                  <stop offset="1" stop-color="#8b5cf6"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="logo-text">
+            <h1>React to PPT</h1>
+            <p class="logo-tagline">AI 驱动的组件演示文稿生成器</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <a href="https://github.com/Yicooong/react-to-ppt" target="_blank" class="github-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            <span>GitHub</span>
+          </a>
+        </div>
       </div>
-      <p class="subtitle">自然语言描述 → React 组件 → 演示文稿</p>
     </header>
 
     <main class="main">
-      <!-- 左侧输入区 -->
-      <section class="input-panel">
-        <div class="panel-header">
-          <h2>组件描述</h2>
-          <span class="word-count" id="wordCount">0 字</span>
-        </div>
+      <!-- Hero 区域 -->
+      <div class="hero">
+        <div class="hero-badge">✨ AI 驱动的演示文稿生成</div>
+        <h2 class="hero-title">用自然语言描述<br/>自动生成 PPT 演示文稿</h2>
+        <p class="hero-desc">
+          只需描述你想要的 React 组件，AI 将为你生成代码并自动转换为专业的 PPT 演示文档
+        </p>
+      </div>
 
-        <div class="form-group">
-          <label for="promptInput">描述你想要的组件</label>
-          <textarea
-            id="promptInput"
-            placeholder="例如：创建一个蓝色的提交按钮，支持 loading 状态、禁用样式，点击后显示 loading 动画..."
-            rows="5"
-          ></textarea>
-          <small>提示：描述越详细，生成的代码越符合预期</small>
-        </div>
-
-        <div class="form-group">
-          <label for="providerSelect">LLM 提供商</label>
-          <select id="providerSelect">
-            <option value="stepfun">StepFun (推荐)</option>
-            <option value="openai">OpenAI (GPT-4)</option>
-            <option value="local">本地模型</option>
-          </select>
-        </div>
-
-        <div class="button-group">
-          <button id="generateBtn" class="btn btn-primary btn-large">
-            <span class="btn-text">🚀 生成 PPT</span>
-          </button>
-          <button id="previewBtn" class="btn btn-secondary">
-            👁️ 预览代码
-          </button>
-        </div>
-
-        <!-- 进度指示器 -->
-        <div id="progressPanel" class="progress-panel hidden">
-          <div class="progress-bar">
-            <div id="progressFill" class="progress-fill"></div>
+      <!-- 主工作区 -->
+      <div class="workspace">
+        <!-- 左侧：输入面板 -->
+        <section class="input-card glass-card">
+          <div class="card-header">
+            <div class="card-icon">✏️</div>
+            <h3>组件描述</h3>
+            <span class="char-count" id="charCount">0 字</span>
           </div>
-          <p id="progressText" class="progress-text">准备中...</p>
-        </div>
 
-        <!-- 错误提示 -->
-        <div id="errorPanel" class="error-panel hidden">
-          <div class="error-header">
-            <span class="error-icon">⚠️</span>
-            <span>生成失败</span>
+          <div class="input-wrapper">
+            <textarea
+              id="promptInput"
+              placeholder="例如：创建一个现代化的登录表单，包含用户名、密码输入框，支持回车提交、错误提示、记住密码功能..."
+              rows="6"
+            ></textarea>
+            <div class="input-glow"></div>
           </div>
-          <p id="errorMsg"></p>
-          <button class="btn-close" onclick="hideError()">✕</button>
-        </div>
-      </section>
 
-      <!-- 右侧输出区 -->
-      <section class="output-panel">
-        <!-- 生成前 -->
-        <div id="placeholderPanel" class="placeholder-panel">
-          <div class="placeholder-content">
-            <span class="placeholder-icon">📝</span>
-            <h3>等待生成</h3>
-            <p>在左侧输入组件描述，点击"生成 PPT"按钮开始</p>
+          <div class="quick-prompts">
+            <span class="quick-label">快速示例：</span>
+            <button class="quick-chip" data-prompt="创建一个蓝色的提交按钮，支持 loading 状态、禁用样式，点击后显示 loading 动画">按钮</button>
+            <button class="quick-chip" data-prompt="创建一个用户信息卡片组件，显示头像、姓名、邮箱、关注按钮，支持悬停效果">卡片</button>
+            <button class="quick-chip" data-prompt="创建一个导航栏，包含 logo、菜单项、搜索框、用户头像，支持移动端汉堡菜单">导航栏</button>
+            <button class="quick-chip" data-prompt="创建一个模态对话框，包含标题、内容、确认和取消按钮，支持点击遮罩关闭">模态框</button>
           </div>
-        </div>
 
-        <!-- 生成中 -->
-        <div id="loadingPanel" class="loading-panel hidden">
-          <div class="spinner-large"></div>
-          <p id="loadingText">正在连接 LLM...</p>
-        </div>
-
-        <!-- 生成完成 -->
-        <div id="resultPanel" class="result-panel hidden">
-          <!-- 代码预览 -->
-          <div class="code-section">
-            <div class="section-header">
-              <h3>生成的代码</h3>
-              <div class="code-actions">
-                <button id="copyCodeBtn" class="btn-small">📋 复制</button>
-                <button id="toggleCodeBtn" class="btn-small">🔽 收起</button>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="providerSelect">LLM 提供商</label>
+              <div class="select-wrapper">
+                <select id="providerSelect">
+                  <option value="stepfun">StepFun (推荐)</option>
+                  <option value="openai">OpenAI (GPT-4)</option>
+                  <option value="local">本地模型 (Ollama)</option>
+                </select>
+                <div class="select-arrow">▼</div>
               </div>
             </div>
-            <pre id="codeBlock" class="code-block"><code></code></pre>
+
+            <div class="form-field">
+              <label for="themeSelect">PPT 主题</label>
+              <div class="select-wrapper">
+                <select id="themeSelect">
+                  <option value="modern">Modern (简约)</option>
+                  <option value="midnight">Midnight (商务)</option>
+                  <option value="coral">Coral (活力)</option>
+                  <option value="forest">Forest (清新)</option>
+                </select>
+                <div class="select-arrow">▼</div>
+              </div>
+            </div>
           </div>
 
-          <!-- 操作按钮 -->
-          <div class="actions-section">
-            <a id="downloadBtn" class="btn btn-success btn-large" download>
-              ⬇️ 下载 PPT 演示文稿
-            </a>
-            <button id="regenerateBtn" class="btn btn-outline">
-              🔄 重新生成
+          <div class="button-group">
+            <button id="generateBtn" class="btn btn-primary">
+              <span class="btn-icon">🚀</span>
+              <span class="btn-text">生成 PPT 演示文稿</span>
+            </button>
+            <button id="previewBtn" class="btn btn-ghost">
+              <span class="btn-icon">👁️</span>
+              <span class="btn-text">仅预览代码</span>
             </button>
           </div>
 
-          <!-- 统计信息 -->
-          <div class="stats-grid">
-            <div class="stat-item">
-              <span class="stat-label">代码行数</span>
-              <span id="statLines" class="stat-value">0</span>
+          <!-- 进度条 -->
+          <div id="progressPanel" class="progress-section hidden">
+            <div class="progress-track">
+              <div id="progressFill" class="progress-bar-fill"></div>
             </div>
-            <div class="stat-item">
-              <span class="stat-label">Props 数量</span>
-              <span id="statProps" class="stat-value">0</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">Hooks 使用</span>
-              <span id="statHooks" class="stat-value">0</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">LLM 提供商</span>
-              <span id="statProvider" class="stat-value">-</span>
+            <div class="progress-status">
+              <span id="progressIcon" class="progress-icon">⏳</span>
+              <span id="progressText" class="progress-label">正在连接 LLM...</span>
             </div>
           </div>
-        </div>
-      </section>
+
+          <!-- 错误提示 -->
+          <div id="errorPanel" class="error-card hidden">
+            <div class="error-header">
+              <span class="error-icon">⚠️</span>
+              <span>生成失败</span>
+            </div>
+            <p id="errorMsg" class="error-message"></p>
+            <button class="error-close" onclick="hideError()">✕</button>
+          </div>
+        </section>
+
+        <!-- 右侧：输出面板 -->
+        <section class="output-card glass-card">
+          <!-- 空状态 -->
+          <div id="placeholderPanel" class="placeholder-state">
+            <div class="placeholder-visual">
+              <div class="placeholder-icon-wrapper">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+              </div>
+            </div>
+            <h3 class="placeholder-title">准备就绪</h3>
+            <p class="placeholder-desc">输入组件描述，点击"生成 PPT"开始创建演示文稿</p>
+          </div>
+
+          <!-- 加载状态 -->
+          <div id="loadingPanel" class="loading-state hidden">
+            <div class="spinner"></div>
+            <p id="loadingText" class="loading-label">正在连接 LLM...</p>
+          </div>
+
+          <!-- 结果面板 -->
+          <div id="resultPanel" class="result-state hidden">
+            <!-- 代码预览区 -->
+            <div class="code-card">
+              <div class="code-header">
+                <div class="code-info">
+                  <span class="code-icon">📄</span>
+                  <span class="code-title">生成的 React 代码</span>
+                </div>
+                <div class="code-actions">
+                  <button id="copyCodeBtn" class="action-btn" title="复制代码">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                    </svg>
+                    复制
+                  </button>
+                  <button id="toggleCodeBtn" class="action-btn" title="收起代码">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="18 15 12 9 6 15"/>
+                    </svg>
+                    收起
+                  </button>
+                </div>
+              </div>
+              <div class="code-container">
+                <pre id="codeBlock" class="code-display"><code></code></pre>
+              </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="action-card">
+              <a id="downloadBtn" class="btn btn-primary btn-large" download>
+                <span class="btn-icon">⬇️</span>
+                <span>下载 PPT 演示文稿</span>
+              </a>
+              <button id="regenerateBtn" class="btn btn-secondary">
+                <span class="btn-icon">🔄</span>
+                <span>重新生成</span>
+              </button>
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="stats-card">
+              <div class="stat-row">
+                <div class="stat-item">
+                  <span class="stat-icon">📏</span>
+                  <div class="stat-info">
+                    <span class="stat-label">代码行数</span>
+                    <span id="statLines" class="stat-value">0</span>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-icon">🔑</span>
+                  <div class="stat-info">
+                    <span class="stat-label">Props 数量</span>
+                    <span id="statProps" class="stat-value">0</span>
+                  </div>
+                </div>
+              </div>
+              <div class="stat-row">
+                <div class="stat-item">
+                  <span class="stat-icon">🪝</span>
+                  <div class="stat-info">
+                    <span class="stat-label">Hooks 使用</span>
+                    <span id="statHooks" class="stat-value">0</span>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-icon">🤖</span>
+                  <div class="stat-info">
+                    <span class="stat-label">LLM 提供商</span>
+                    <span id="statProvider" class="stat-value">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
     </main>
 
     <!-- 底部 -->
     <footer class="footer">
-      <p>
-        由 <a href="https://github.com/gitbrent/pptxgenjs" target="_blank">pptxgenjs</a>
-        和 LLM 驱动 | MIT 开源协议
-      </p>
+      <div class="footer-content">
+        <p>
+          由 <a href="https://github.com/gitbrent/pptxgenjs" target="_blank">pptxgenjs</a>
+          和 LLM 驱动 | MIT 开源协议
+        </p>
+        <div class="footer-links">
+          <a href="https://github.com/Yicooong/react-to-ppt" target="_blank">GitHub</a>
+          <span class="separator">·</span>
+          <a href="#" onclick="showAbout()">关于</a>
+        </div>
+      </div>
     </footer>
   </div>
 

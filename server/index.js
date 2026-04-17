@@ -11,7 +11,7 @@ const path = require('path');
 const fs = require('fs');
 
 // 导入服务
-const LLMService = require('./services/llm-service');
+const { LLMService } = require('./services/llm-service');
 const PPTGenerator = require('./services/ppt-generator');
 
 // 导入路由（稍后创建）
